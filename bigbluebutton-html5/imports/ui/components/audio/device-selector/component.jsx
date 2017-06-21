@@ -1,12 +1,15 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 
 const propTypes = {
   kind: PropTypes.oneOf(['audioinput', 'audiooutput', 'videoinput']),
   onChange: PropTypes.func.isRequired,
+  value: PropTypes.string,
 };
 
 const defaultProps = {
   kind: 'audioinput',
+  value: undefined,
 };
 
 class DeviceSelector extends Component {
@@ -18,7 +21,7 @@ class DeviceSelector extends Component {
     this.handleSelectChange = this.handleSelectChange.bind(this);
 
     this.state = {
-      value: undefined,
+      value: props.value,
       devices: [],
       options: [],
     };
@@ -44,7 +47,7 @@ class DeviceSelector extends Component {
   }
 
   handleEnumerateDevicesError(error) {
-    console.error(error);
+    logClient('error', { error, method: 'handleEnumerateDevicesError' });
   }
 
   handleSelectChange(event) {
@@ -65,13 +68,15 @@ class DeviceSelector extends Component {
         {...props}
         value={value}
         onChange={this.handleSelectChange}
-        disabled={!options.length}>
+        disabled={!options.length}
+      >
         {
           options.length ?
             options.map((option, i) => (
               <option
                 key={i}
-                value={option.value}>
+                value={option.value}
+              >
                 {option.label}
               </option>
             )) :
@@ -80,7 +85,7 @@ class DeviceSelector extends Component {
       </select>
     );
   }
-};
+}
 
 DeviceSelector.propTypes = propTypes;
 DeviceSelector.defaultProps = defaultProps;

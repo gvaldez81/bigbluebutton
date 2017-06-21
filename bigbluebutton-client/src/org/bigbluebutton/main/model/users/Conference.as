@@ -30,7 +30,6 @@ package org.bigbluebutton.main.model.users {
 	import org.as3commons.logging.api.getClassLogger;
 	import org.bigbluebutton.common.Role;
 	import org.bigbluebutton.core.BBB;
-	import org.bigbluebutton.core.managers.UserManager;
 	import org.bigbluebutton.core.model.Config;
 	import org.bigbluebutton.core.model.MeetingModel;
 	import org.bigbluebutton.core.vo.CameraSettingsVO;
@@ -64,7 +63,7 @@ package org.bigbluebutton.main.model.users {
 		
 		private var lockSettings:LockSettingsVO;
 		
-		private var _myCamSettings:CameraSettingsVO = new CameraSettingsVO();
+		private var _myCamSettings:ArrayCollection = null;
 		
 		[Bindable]
 		private var me:BBBUser = null;
@@ -90,6 +89,7 @@ package org.bigbluebutton.main.model.users {
 			users.sort = sort;
 			users.refresh();
 			breakoutRooms = new ArrayCollection();
+			_myCamSettings = new ArrayCollection();
 		}
 		
 		// Custom sort function for the users ArrayCollection. Need to put dial-in users at the very bottom.
@@ -152,19 +152,28 @@ package org.bigbluebutton.main.model.users {
 			users.addItem(newuser);
 			users.refresh();
 		}
-		
-		public function setCamPublishing(publishing:Boolean):void {
-			_myCamSettings.isPublishing = publishing;
+
+		public function addCameraSettings(camSettings: CameraSettingsVO): void {
+			if(!_myCamSettings.contains(camSettings)) {
+				_myCamSettings.addItem(camSettings);
+			}
 		}
-		
-		public function setCameraSettings(camSettings:CameraSettingsVO):void {
-			_myCamSettings = camSettings;
+
+		public function removeCameraSettings(camIndex:int): void {
+			if (camIndex != -1) {
+				for(var i:int = 0; i < _myCamSettings.length; i++) {
+					if (_myCamSettings.getItemAt(i) != null && _myCamSettings.getItemAt(i).camIndex == camIndex) {
+						_myCamSettings.removeItemAt(i);
+						return;
+					}
+				}
+			}
 		}
-		
-		public function amIPublishing():CameraSettingsVO {
+
+		public function amIPublishing():ArrayCollection {
 			return _myCamSettings;
 		}
-		
+
 		public function setDefaultLayout(defaultLayout:String):void {
 			this.defaultLayout = defaultLayout;
 		}
@@ -558,8 +567,21 @@ package org.bigbluebutton.main.model.users {
 			}
 			breakoutRooms.addItem(newRoom);
 			sortBreakoutRooms();
-		}
-		
+        }
+
+        public function setLastBreakoutRoomInvitation(sequence:int):void {
+            var aRoom:BreakoutRoom;
+            for (var i:int = 0; i < breakoutRooms.length; i++) {
+                aRoom = breakoutRooms.getItemAt(i) as BreakoutRoom;
+                if (aRoom.sequence != sequence) {
+                    aRoom.invitedRecently = false;
+                } else {
+                    aRoom.invitedRecently = true;
+                }
+            }
+			sortBreakoutRooms();
+        }
+
 		private function sortBreakoutRooms() : void {
 			var sort:Sort = new Sort();
 			sort.fields = [new SortField("sequence", true, false, true)];

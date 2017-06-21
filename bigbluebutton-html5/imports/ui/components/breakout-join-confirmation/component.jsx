@@ -1,37 +1,37 @@
 import React, { Component } from 'react';
 import { defineMessages, injectIntl } from 'react-intl';
-import { clearModal } from '/imports/ui/components/app/service';
-import Auth from '/imports/ui/services/auth';
-import Modal from '/imports/ui/components/modal/component';
+import { withModalMounter } from '/imports/ui/components/modal/service';
+import AudioService from '../audio/service';
+import Modal from '/imports/ui/components/modal/fullscreen/component';
 
 const intlMessages = defineMessages({
   title: {
     id: 'app.breakoutJoinConfirmation.title',
-    defaultMessage: 'Join Breakout Room',
+    description: 'Join breakout room title',
   },
   message: {
     id: 'app.breakoutJoinConfirmation.message',
-    defaultMessage: 'Do you want to join',
+    description: 'Join breakout confim message',
   },
   confirmLabel: {
     id: 'app.breakoutJoinConfirmation.confirmLabel',
-    defaultMessage: 'Join',
+    description: 'Join confirmation button label',
   },
   confirmDesc: {
     id: 'app.breakoutJoinConfirmation.confirmDesc',
-    defaultMessage: 'Join you to the Breakout Room',
+    description: 'adds context to confirm option',
   },
   dismissLabel: {
     id: 'app.breakoutJoinConfirmation.dismissLabel',
-    defaultMessage: 'Cancel',
+    description: 'Cancel button label',
   },
   dismissDesc: {
     id: 'app.breakoutJoinConfirmation.dismissDesc',
-    defaultMessage: 'Closes and rejects Joining the Breakout Room',
+    description: 'adds context to dismiss option',
   },
 });
 
-class LeaveConfirmation extends Component {
+class BreakoutJoinConfirmation extends Component {
   constructor(props) {
     super(props);
 
@@ -39,10 +39,16 @@ class LeaveConfirmation extends Component {
   }
 
   handleJoinBreakoutConfirmation() {
-    const { breakoutURL } = this.props;
+    const {
+      breakoutURL,
+      mountModal,
+    } = this.props;
+
+    // leave main room's audio when joining a breakout room
+    AudioService.exitAudio();
 
     window.open(breakoutURL);
-    clearModal();
+    mountModal(null);
   }
 
   render() {
@@ -58,11 +64,12 @@ class LeaveConfirmation extends Component {
         dismiss={{
           label: intl.formatMessage(intlMessages.dismissLabel),
           description: intl.formatMessage(intlMessages.dismissDesc),
-        }}>
+        }}
+      >
         {`${intl.formatMessage(intlMessages.message)} ${breakoutName}?`}
       </Modal>
     );
   }
-};
+}
 
-export default injectIntl(LeaveConfirmation);
+export default withModalMounter(injectIntl(BreakoutJoinConfirmation));
